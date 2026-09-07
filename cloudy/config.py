@@ -22,6 +22,8 @@ class Config:
     reserve_cpus: int = 1
     reserve_disk_gib: int = 10
     max_vps: int = 1
+    # Small disk mode: can be overridden via env vars
+    small_disk_mode: bool = False
     lease_days: int = 30
     retention_hours: int = 72
     sshx_ttl: int = 900
@@ -59,6 +61,9 @@ class Config:
         socket = os.getenv("DOCKER_HOST", "unix:///var/run/docker.sock")
         if not socket.startswith("unix:///"):
             raise ValueError("Only a local Unix Docker socket is supported")
+        
+        # Small disk mode for testing/development on limited resources
+        small_disk = boolean("SMALL_DISK_MODE", "false")
         return cls(
             token=token,
             guild_id=integer("GUILD_ID", 0, 1, 2**64 - 1),
@@ -68,15 +73,17 @@ class Config:
             image=os.getenv("VPS_IMAGE", "cloudy/ubuntu:22.04-sshx"),
             data_dir=Path(os.getenv("DATA_DIR", "/var/lib/cloudy-vps")).resolve(),
             docker_socket=socket,
-            ram_gib=integer("VPS_RAM_GIB", 15),
-            cpus=integer("VPS_CPUS", 3, 1, 1024),
-            disk_gib=integer("VPS_DISK_GIB", 75),
-            reserve_ram_gib=integer("HOST_RESERVE_RAM_GIB", 2),
+            # Reduce resources for small disk mode (testing/dev)
+            ram_gib=integer("VPS_RAM_GIB", 6 if small_disk else 15),
+            cpus=integer("VPS_CPUS", 1 if small_disk else 3, 1, 1024),
+            disk_gib=integer("VPS_DISK_GIB", 10 if small_disk else 75),
+            reserve_ram_gib=integer("HOST_RESERVE_RAM_GIB", 1 if small_disk else 2),
             reserve_cpus=integer("HOST_RESERVE_CPUS", 1, 1, 1024),
-            reserve_disk_gib=integer("HOST_RESERVE_DISK_GIB", 10),
+            reserve_disk_gib=integer("HOST_RESERVE_DISK_GIB", 3 if small_disk else 10),
             max_vps=integer("MAX_VPS_TOTAL", 1, 1, 1000),
             lease_days=integer("LEASE_DAYS", 30, 1, 365),
             retention_hours=integer("EXPIRED_RETENTION_HOURS", 72, 1, 720),
             sshx_ttl=integer("SSHX_TTL_SECONDS", 900, 60, 3600),
             runtime=os.getenv("DOCKER_RUNTIME", "runc"),
+            small_disk_mode=small_disk,
         )

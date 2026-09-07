@@ -33,8 +33,15 @@ mkdir -p "$TARGET" /etc/docker /etc/systemd/system/docker.service.d
 python3 - "$SIZE" <<'PY'
 import shutil, sys
 wanted = int(sys.argv[1]) * 1024**3
-if shutil.disk_usage('/var/lib').free < wanted + 10 * 1024**3:
+free = shutil.disk_usage('/var/lib').free
+buffer_needed = 5 * 1024**3  # 5 GiB buffer for operations
+if free < wanted + buffer_needed:
+    free_gb = free / (1024**3)
+    wanted_gb = wanted / (1024**3)
+    buffer_gb = buffer_needed / (1024**3)
+    print(f'Free: {free_gb:.1f} GiB, Needed: {wanted_gb:.1f} GiB + {buffer_gb:.1f} GiB buffer')
     raise SystemExit('Not enough real free disk. A sparse-file fallback is intentionally forbidden.')
+print(f'Storage check OK: {free / (1024**3):.1f} GiB free, allocating {wanted_gb:.1f} GiB')
 PY
 # Fully preallocate the backing file: no sparse disks, overbooking or fake capacity.
 ( set -o noclobber; : > "$IMAGE" )
