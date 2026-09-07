@@ -1,0 +1,13 @@
+[Unit]
+Description=Cloudy container isolation firewall
+After=docker.service
+Requires=docker.service
+PartOf=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/libexec/cloudy-firewall
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target docker.service

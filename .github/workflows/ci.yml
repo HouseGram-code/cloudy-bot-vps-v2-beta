@@ -1,0 +1,24 @@
+name: Checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m compileall -q cloudy scripts tests
+      - run: python -m unittest discover -s tests -v
+      - run: ruff check cloudy scripts tests
+      - run: python scripts/check-secrets.py
+      - run: for file in scripts/*.sh; do bash -n "$file"; done
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check deploy/freestyle/create-host.mjs
+# CI never runs a Discord bot, sshx session or free-hosting keepalive.

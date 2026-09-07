@@ -1,0 +1,10 @@
+{
+  "name": "cloudy-freestyle-bootstrap",
+  "version": "1.0.0-dev",
+  "private": true,
+  "type": "module",
+  "description": "Optional one-time host provisioning; the Discord bot itself is Python",
+  "dependencies": {"freestyle": "latest"},
+  "scripts": {"create-host": "node create-host.mjs"},
+  "engines": {"node": ">=22"}
+}

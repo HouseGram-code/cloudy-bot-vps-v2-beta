@@ -1,0 +1,11 @@
+[Unit]
+Description=Enforce Cloudy VPS lease deadlines every minute
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=60s
+AccuracySec=5s
+Unit=cloudy-expiry.service
+
+[Install]
+WantedBy=timers.target

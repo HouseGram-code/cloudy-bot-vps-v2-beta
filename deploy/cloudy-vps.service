@@ -1,0 +1,30 @@
+[Unit]
+Description=Cloudy VPS v1.0-dev Discord control plane
+After=network-online.target docker.service cloudy-firewall.service
+Wants=network-online.target
+Requires=docker.service cloudy-firewall.service
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+User=cloudy
+Group=cloudy
+SupplementaryGroups=docker
+WorkingDirectory=/opt/cloudy-vps
+EnvironmentFile=/opt/cloudy-vps/.env
+Environment=PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
+ExecStart=/opt/cloudy-vps/.venv/bin/python -m cloudy
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=60
+UMask=0077
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/cloudy-vps
+# Do not add NoNewPrivileges: the narrowly scoped sudo firewall check needs setuid.
+# The Docker group is root-equivalent; this is a trusted host control plane.
+
+[Install]
+WantedBy=multi-user.target

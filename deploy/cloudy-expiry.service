@@ -1,0 +1,9 @@
+[Unit]
+Description=Stop expired Cloudy containers independently of Discord
+After=docker.service cloudy-firewall.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/libexec/cloudy-enforce-expiry
+TimeoutStartSec=300
+Nice=10
